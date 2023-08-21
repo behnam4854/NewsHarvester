@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=app
+      - DB_USER=postgres
+      - DB_PASS=supersecretpassword
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=supersecretpassword
+#   web:
+#     build: .
+#     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+#     volumes:
+#       - .:/code
+#     ports:
+#       - 8000:8000
+#     env_file:
+#       - /path/to/.env
+#   redis:
+#     image: redis:6
+
+#   celery:
+#     build: 
+#       context: .
+#     command: celery -A config worker -l info
+#     volumes:
+#       - .:/code
+#     env_file:
+#       - ./.env  
+#     depends_on:
+#       - db
+#       - redis
+
+volumes:
+  postgres_data:
